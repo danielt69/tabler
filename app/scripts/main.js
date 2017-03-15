@@ -95,16 +95,27 @@
         //   var json = XLSX.utils.sheet_to_json(worksheet);
         // });
         window.workbook = workbook;
-		if ($('.radio.active input').val() == 'table') {
-			tableBuilder(workbook);
-		} else if ($('.radio.active input').val() == 'html') {
-			htmlBuilder(workbook);
-		} else if ($('.radio.active input').val() == 'json') {
-			jsonBuilder(workbook);
-		}
+    		if ($('.radio.active input').val() == 'table') {
+    			tableBuilder(workbook);
+    		} else if ($('.radio.active input').val() == 'html') {
+    			htmlBuilder(workbook);
+    		} else if ($('.radio.active input').val() == 'json') {
+    			jsonBuilder(workbook);
+    		}
       };
       reader.readAsBinaryString(f);
     }
+
+    setTimeout(function(){
+        $('.output').children().before('<button title="copy" class="copy btn btn-default"><i class="fa fa-clipboard" aria-hidden="true"></i> Copy</button>');
+        $('.btn').each(function(){
+          var clipboard = new Clipboard(this, {
+                text: function(e) {
+                    return $(e).next()[0].outerHTML
+                }
+            });
+        })
+    }, 1000);
   } 
 
   var simpleTabs = function(aaa,bbb) { // aaa = tabs, bbb = section that links to tab
@@ -156,8 +167,7 @@
     });
   }
 
-  function htmlBuilder
-(json) {
+  function htmlBuilder (json) {
   	var sheet_name_list = workbook.SheetNames;
     sheet_name_list.forEach(function(y) { /* iterate through sheets */
 		var worksheet = workbook.Sheets[y];
@@ -173,12 +183,12 @@
   }
 
   function jsonBuilder(json) {
-  	var sheet_name_list = workbook.SheetNames;
-    sheet_name_list.forEach(function(y) { /* iterate through sheets */
-		var worksheet = workbook.Sheets[y];
-		var json = XLSX.utils.sheet_to_json(worksheet);
-    	$('.output').append(JSON.stringify(window.workbook));
-	});
+    	var sheet_name_list = workbook.SheetNames;
+      sheet_name_list.forEach(function(y) { /* iterate through sheets */
+  		var worksheet = workbook.Sheets[y];
+  		var json = XLSX.utils.sheet_to_json(worksheet);
+      	$('.output').append(JSON.stringify(window.workbook));
+  	});
   }
 
   //code
