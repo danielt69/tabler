@@ -71,165 +71,138 @@
       console.error('Error during service worker registration:', e);
     });
   }
-
+//##############################################################################################################################//
   // Your custom JavaScript goes here
 
   //helpers
-  function handleDrop(e) {
-    // e.stopPropagation();
-    // e.preventDefault();
-    var files = e;
-    var i,f;
-    for (i = 0, f = files[i]; i != files.length; ++i) {
-      var reader = new FileReader();
-      var name = f.name;
-      reader.onload = function(e) {
-        var data = e.target.result;
+  // function handleDrop(img) {
+  //   // e.stopPropagation();
+  //   // e.preventDefault();
+  //   // window.img = img[0];
+  //   console.log(img);
+  //   var c = document.getElementById("main");
+  //   var ctx = c.getContext("2d");
+  //   var image = img;
+  //   ctx.drawImage(image,0,0);
+  // } 
 
-        /* if binary string, read with type 'binary' */
-        var workbook = XLSX.read(data, {type: 'binary'});
 
-        // var sheet_name_list = workbook.SheetNames;
-        // sheet_name_list.forEach(function(y) { /* iterate through sheets */
-        //   var worksheet = workbook.Sheets[y];
-        //   var json = XLSX.utils.sheet_to_json(worksheet);
-        // });
-        window.workbook = workbook;
-    		if ($('.radio.active input').val() == 'table') {
-    			tableBuilder(workbook);
-    		} else if ($('.radio.active input').val() == 'html') {
-    			htmlBuilder(workbook);
-    		} else if ($('.radio.active input').val() == 'json') {
-    			jsonBuilder(workbook);
-    		}
-      };
-      reader.readAsBinaryString(f);
-    }
+// document.getElementById('imageinput').addEventListener('change', function(event) {
+//     var myCanvas = document.getElementById("main");
+//     var ctx = myCanvas.getContext('2d');
+//     var img = new Image();
+//     img.onload = function(){
+//         myCanvas.width = img.width;
+//         myCanvas.height = img.height;
+        
+//         ctx.drawImage(img, 0, 0);
+        
+//         // console.log(myCanvas.toDataURL('image/jpeg'));
+//     };
+    
+//     img.src = URL.createObjectURL(event.target.files[0]);
+// });
+String.prototype.replaceAll = function(search, replacement) {
+    var target = this;
+    return target.replace(new RegExp(search, 'g'), replacement);
+};
 
-    setTimeout(function(){
-        $('.output').children().before('<button title="copy" class="copy btn btn-default"><i class="fa fa-clipboard" aria-hidden="true"></i> Copy</button>');
-        $('.btn').each(function(){
-          var clipboard = new Clipboard(this, {
-                text: function(e) {
-                    return $(e).next()[0].outerHTML
-                }
-            });
-        })
-    }, 1000);
-  } 
+function dlCanvas() {
+  var dt = $('canvas')[0].toDataURL();
+  /* Change MIME type to trick the browser to downlaod the file instead of displaying it */
+  dt = dt.replace(/^data:image\/[^;]*/, 'data:application/octet-stream');
+  /* In addition to <a>'s "download" attribute, you can define HTTP-style headers */
+  dt = dt.replace(/^data:application\/octet-stream/, 'data:application/octet-stream;headers=Content-Disposition%3A%20attachment%3B%20filename=Canvas.png');
+  this.href = dt;
+  this.download = $('canvas').data().name;
+};
 
-  var simpleTabs = function(aaa,bbb) { // aaa = tabs, bbb = section that links to tab
-    aaa.each(function(index, value) {
-        $(this).on('click.tab', function(e) {
-            $(this).addClass('active').siblings().removeClass('active');
-            bbb[index] && bbb.removeClass('active').eq(index).addClass('active');            
-        });
-    });
+
+function handleFiles(files) {
+    var file = files[0];
+    var myCanvas = document.getElementById("main");
+    $(myCanvas).data().name = file.name;
+    var ctx = myCanvas.getContext('2d');
+    var img = new Image();
+    img.onload = function(){
+        myCanvas.width = img.width;
+        myCanvas.height = (img.width*img.height)/img.width;
+        ctx.drawImage(img, 0, 0, myCanvas.width, myCanvas.height);
+        // console.log(myCanvas.toDataURL('image/jpeg'));
+    };
+    // var img = document.createElement("img");
+
+    img.file = file;
+    
+    var reader = new FileReader();
+    reader.onload = (function(aImg) { return function(e) { aImg.src = e.target.result; }; })(img);
+    reader.readAsDataURL(file);
+    // $("#main").after('<img src="' + $("#main")[0].toDataURL('image/jpeg') + '" title="' + file.name + '">');
+
+    // imgSet(file);
+    $('svg').remove();
+    $('#dl').removeClass('disabled');
+}
+
+function imgSet(){
+  var str = $('input.form-control').val() || '100, 200, 400, 800';
+  var set = str.replace(" ","").split(',');
+  for (var i = 0; i < set.length; i++) {
+    set[i] = parseInt(set[i]);
   }
+  set = set.sort();
+  return set;
+}
+//   for (var i = 0; i < set.length; i++) {
+//     // set[i]
+//     var canvas = document.getElementById("main");
+//     var oldCanvas = canvas.toDataURL();
+//     var img = new Image();
+//     img.src = oldCanvas;
+//     img.onload = function (){
+//         canvas.width = set[i];
+//         myCanvas.height = (set[i]*img.height)/img.width;
+//         ctx.drawImage(img, 0, 0, myCanvas.width, myCanvas.height);
+//     }
+//     // mycanvas.id = "canvas"+"_"+set[i];
+//     // document.body.appendChild(mycanvas);
 
-  function tableBuilder(workbook) {
-
-    var sheet_name_list = workbook.SheetNames;
-    sheet_name_list.forEach(function(y) { /* iterate through sheets */
-		var worksheet = workbook.Sheets[y];
-		var json = XLSX.utils.sheet_to_json(worksheet);
-
-	    var _wrapper_start = $('form.option.table .wrapper_start').val()           || '<table class="table table-hover table-responsive"><tbody>';
-	    var _wrapper_end = $('form.option.table .wrapper_end').val()             || '</table></tbody>';
-	    var _tableHeading_row_open = $('form.option.table .tableHeading_row_open').val()   || '<tr>';
-	    var _tableHeading_row_close = $('form.option.table .tableHeading_row_close').val()  || '</tr>';
-	    var _tableHeading_th_open = $('form.option.table .tableHeading_th_open').val()    || '<th>';
-	    var _tableHeading_th_close = $('form.option.table .tableHeading_th_close').val()   || '</th>';
-	    var _tableBody_row_open = $('form.option.table .tableBody_row_open').val()      || '<tr>';
-	    var _tableBody_row_close = $('form.option.table .tableBody_row_close').val()     || '</tr>';
-	    var _tableBody_td_open = $('form.option.table .tableBody_td_open').val()       || '<td>';
-	    var _tableBody_td_close = $('form.option.table .tableBody_td_close').val()      || '</td>';
-
-	    var htmlTable = '';
-
-	    var tableHeading = _tableHeading_row_open;
-	    $.each(json[0], function( index, value ) {
-	      tableHeading += _tableHeading_th_open + index + _tableHeading_th_close;
-	    });
-	    tableHeading += _tableHeading_row_close;
-
-	    var tableBody = '';
-	    for (var i = 0; i < json.length; i++) {
-	      tableBody += _tableBody_row_open;
-	      $.each(json[i], function( index, value ) {
-	        tableBody += _tableBody_td_open + value + _tableBody_td_close;
-	      });
-	      tableBody += _tableBody_row_close;
-	    }
-
-	    htmlTable = _wrapper_start + tableHeading + tableBody + _wrapper_end;
-	    $('.output').append(htmlTable);
-    });
-  }
-
-  function htmlBuilder (json) {
-  	var sheet_name_list = workbook.SheetNames;
-    sheet_name_list.forEach(function(y) { /* iterate through sheets */
-		var worksheet = workbook.Sheets[y];
-		var json = XLSX.utils.sheet_to_json(worksheet);
-	    var _wrapper_start = $('form.option.html .wrapper_start').val()           || '<section class="compare_table">';
-	    var _wrapper_end = $('form.option.html .wrapper_end').val()             || '</section>';
-	    var _rowTemplate = '';
-	    var htmlTable = '';
-
-	    htmlTable = _wrapper_start + _rowTemplate + _wrapper_end;
-	    $('.output').append(htmlTable);
-    });
-  }
-
-  function jsonBuilder(json) {
-    	var sheet_name_list = workbook.SheetNames;
-      sheet_name_list.forEach(function(y) { /* iterate through sheets */
-  		var worksheet = workbook.Sheets[y];
-  		var json = XLSX.utils.sheet_to_json(worksheet);
-      	$('.output').append(JSON.stringify(window.workbook));
-  	});
-  }
+//     var name = file.name+"_"+set[i];
+//     var ctx = myCanvas.getContext('2d');
+//     img.onload = function(){
+//         myCanvas.width = set[i];
+//         myCanvas.height = (set[i]*img.height)/img.width;
+//         ctx.drawImage(img, 0, 0, myCanvas.width, myCanvas.height);
+//     };
+//     img.file = file;
+//     img.src = myCanvas.toDataURL('image/jpeg');
+//     $('.output').append(img);
+//   }
+// }
 
   //code
 $( document ).ready(function() {
 
-
-  $("html").on("dragover", function(event) {
-      event.preventDefault();  
-      event.stopPropagation();
-      $(this).addClass('dragging');
-  }).on("dragleave", function(event) {
-      event.preventDefault();  
-      event.stopPropagation();
-      $(this).removeClass('dragging');
-  }).on("drop", function(event) {
-    if(event.originalEvent.dataTransfer){
-        if(event.originalEvent.dataTransfer.files.length) {
-            event.preventDefault();
-            event.stopPropagation();
-            /*UPLOAD FILES HERE*/
-            $('.output').html('')
-            handleDrop(event.originalEvent.dataTransfer.files);
-        }   
-    }
+  $('html').on('drag dragstart dragend dragover dragenter dragleave drop', function(e) {
+    e.stopPropagation();
+    e.preventDefault();
+  })
+  .on('dragover dragenter', function() {
+    $(this).addClass('dragging');
+  })
+  .on('dragleave dragend drop', function() {
     $(this).removeClass('dragging');
+  })
+  .on('drop', function(e) {
+    // debugger;
+    var dt = e.originalEvent.dataTransfer;
+    var files = dt.files;
+    handleFiles(files);
   });
 
 
-  simpleTabs($('.radio'),$('form.option'));
-  $('.radio input').on('click.build', function(e) {
-    if (window.workbook) {
-      $('.output').html('');
-      if ($(this).val() == 'table') {
-        tableBuilder(window.workbook);
-      } else if ($(this).val() == 'html') {
-        htmlBuilder(window.workbook);
-      } else if ($(this).val() == 'json') {
-        jsonBuilder(window.workbook);
-      }     
-    }
-  });
+  document.getElementById("dl").addEventListener('click', dlCanvas, false);
+
 
 });
 

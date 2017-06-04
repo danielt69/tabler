@@ -48,7 +48,7 @@ html.dragging body { //@include filter(blur(10px)); @include transition(all 0.25
 	font-weight: bold;
 }
 header { position: relative;
-	.loading { display: inline-block; width: 0vw; height: 2px; position: absolute; top: calc(100% - 1px); left: 50%; transform: translateX(-50%); background: #1ecc74; }
+	.loading { display: inline-block; width: 0vw; height: 2px; left: 50%; -webkit-transform: translateX(-50%); transform: translateX(-50%); background: #1ecc74; position: fixed; top: 0; box-shadow: 0px 0px 10px 0px #1ecc74; }
 }
 table { margin: 50px 0;
 	td, th {
@@ -60,10 +60,13 @@ table { margin: 50px 0;
 }
 .space2 {margin-left: 60px; }
 .space1 {margin-left: 30px; }
-form label { text-transform: capitalize; }
-form.option:not(.active) { display: none; }
+// form label { text-transform: capitalize; }
+// form.option:not(.active) { display: none; }
 .container-fluid {padding: 0 calc(15px + 5vw); }
-.form-group {margin-bottom: 0px; }
-.form-control {border: none; background: none; }
-textarea.form-control {box-shadow: inset 0px 0px 1px 1px rgba(0,0,0,.1); }
+// .form-group {margin-bottom: 0px; }
+// .form-control {border: none; background: none; }
+// textarea.form-control {box-shadow: inset 0px 0px 1px 1px rgba(0,0,0,.1); }
 button.copy {float: left; @include transform(translate(-120%,35px)); }
+svg.box__icon {width: 100%; height: 40vh; fill: rgb(239, 239, 239); }
+canvas { max-width: 100%; }
+.form-horizontal .control-label {text-align: center; }
